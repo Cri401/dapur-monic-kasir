@@ -1,79 +1,302 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kasir Dapur Monic</title>
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #fff3e8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-.box {
-  background: white;
-  width: 85%;
-  max-width: 380px;
-  padding: 25px;
-  border-radius: 18px;
-  box-shadow: 0 4px 18px #ddd;
-  text-align: center;
-}
-h1 { color: #d35400; }
-input, button {
-  width: 100%;
-  padding: 14px;
-  margin: 9px 0;
-  box-sizing: border-box;
-  border-radius: 9px;
-  font-size: 16px;
-}
-input { border: 1px solid #ccc; }
-button {
-  background: #d35400;
-  color: white;
-  border: none;
-  font-weight: bold;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#d35400">
+  <title>Kasir Dapur Monic</title>
+  <style>
+    :root { --orange:#d35400; --cream:#fff3e8; --ink:#3d2b1f; --muted:#76675d; --line:#f0dfd2; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial,sans-serif; background:var(--cream); color:var(--ink); }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; }
+    .screen { min-height:100vh; padding:20px; }
+    .center { display:flex; align-items:center; justify-content:center; }
+    .card { width:100%; max-width:420px; background:#fff; border-radius:20px; padding:24px; box-shadow:0 8px 28px #5a2a1012; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { color:var(--orange); font-size:27px; margin-bottom:6px; }
+    .muted { color:var(--muted); font-size:14px; line-height:1.5; }
+    label { display:block; font-size:14px; font-weight:700; margin:14px 0 6px; }
+    input,select { width:100%; padding:13px; border:1px solid #decfc4; border-radius:10px; background:#fff; }
+    .btn { width:100%; border:0; border-radius:10px; padding:14px; background:var(--orange); color:white; font-weight:700; margin-top:16px; }
+    .btn.secondary { background:#fff0e5; color:var(--orange); border:1px solid #f1c7a8; }
+    .message { margin-top:12px; font-size:14px; line-height:1.5; }
+    .hidden { display:none !important; }
+    header { background:#fff; padding:16px 20px; display:flex; gap:12px; align-items:center; justify-content:space-between; box-shadow:0 2px 10px #5a2a100b; }
+    header strong { color:var(--orange); font-size:19px; }
+    header button { border:1px solid var(--line); border-radius:9px; padding:9px 12px; background:white; }
+    main { max-width:1000px; margin:0 auto; padding:18px; }
+    .welcome { background:linear-gradient(135deg,#d35400,#ef8c39); color:white; border-radius:18px; padding:20px; margin-bottom:18px; }
+    .welcome h2 { margin-bottom:6px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; }
+    .tile { background:#fff; padding:16px; border-radius:14px; border:1px solid var(--line); }
+    .tile .emoji { font-size:30px; display:block; margin-bottom:8px; }
+    .tile h3 { font-size:16px; margin-bottom:6px; }
+    .price { font-weight:700; color:var(--orange); }
+    .panel { background:#fff; border-radius:16px; padding:18px; margin-top:18px; border:1px solid var(--line); }
+    .row { display:flex; gap:10px; align-items:center; }
+    .row > * { flex:1; }
+    .cart-item { display:flex; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:14px; }
+    .cart-item button { border:0; background:#ffe7e7; color:#a00; border-radius:7px; padding:5px 9px; }
+    .total { display:flex; justify-content:space-between; font-size:20px; font-weight:700; margin-top:15px; }
+    .small { font-size:12px; color:var(--muted); }
+    @media(min-width:700px) { .layout { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:start; } }
+  </style>
 </head>
 <body>
+  <section id="loginScreen" class="screen center">
+    <div class="card">
+      <h1>🍜 DAPUR MONIC</h1>
+      <p class="muted">Website kasir • Silakan masuk menggunakan akun Anda.</p>
+      <form id="loginForm">
+        <label for="phone">Nomor HP</label>
+        <input id="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="Contoh: 081234567890" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
+        <button id="loginButton" class="btn" type="submit">MASUK</button>
+      </form>
+      <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
+      <p class="small">Jika tidak bisa masuk, pastikan akun Firebase sudah dibuat dengan metode Email/Password dan format akun sesuai petunjuk pemilik website.</p>
+    </div>
+  </section>
 
-<div class="box">
-  <h1>🍜 DAPUR MONIC</h1>
-  <p>Website Kasir</p>
+  <section id="appScreen" class="hidden">
+    <header>
+      <strong>🍜 DAPUR MONIC</strong>
+      <div class="row" style="flex:initial;align-items:center">
+        <span id="roleLabel" class="small"></span>
+        <button id="logoutButton" type="button">Keluar</button>
+      </div>
+    </header>
+    <main>
+      <div class="welcome">
+        <h2>Selamat datang!</h2>
+        <p style="margin:0">Kasir Dapur Monic</p>
+      </div>
+      <div class="layout">
+        <section>
+          <h2>Menu</h2>
+          <div id="menuGrid" class="grid"></div>
+        </section>
+        <section class="panel">
+          <h2>Pesanan saat ini</h2>
+          <p class="muted">Pilih menu untuk menambahkannya ke pesanan.</p>
+          <div id="cartItems"><p class="muted">Belum ada menu dipilih.</p></div>
+          <div class="total"><span>Total</span><span id="cartTotal">Rp0</span></div>
+          <label for="payment">Pembayaran (Rp)</label>
+          <input id="payment" type="number" min="0" inputmode="numeric" placeholder="Jumlah uang pelanggan">
+          <p id="changeText" class="muted">Kembalian: Rp0</p>
+          <button id="finishButton" class="btn" type="button">Selesaikan & Cetak Struk</button>
+          <button id="clearButton" class="btn secondary" type="button">Kosongkan Pesanan</button>
+          <p id="saleMessage" class="message" role="status" aria-live="polite"></p>
+        </section>
+      </div>
+      <section id="ownerPanel" class="panel hidden">
+        <h2>Pengaturan menu (Pemilik)</h2>
+        <p class="muted">Pengaturan ini tersimpan di perangkat/browser ini. Belum disinkronkan ke perangkat karyawan.</p>
+        <div class="row">
+          <input id="newMenuName" placeholder="Nama menu">
+          <input id="newMenuPrice" type="number" min="1" placeholder="Harga (Rp)">
+        </div>
+        <button id="addMenuButton" class="btn" type="button">Tambah Menu</button>
+        <p id="ownerMessage" class="message" role="status"></p>
+      </section>
+      <p class="small" style="margin-top:20px">Catatan: versi awal ini menampilkan kasir dasar. Riwayat transaksi lintas perangkat, laporan, modal awal, dan pengaturan menu bersama memerlukan penyimpanan database serta aturan akses yang dikonfigurasi.</p>
+    </main>
+  </section>
 
-  <form id="loginForm">
-    <input
-      type="tel"
-      id="phone"
-      placeholder="Nomor HP"
-      required>
-    <input
-      type="password"
-      id="password"
-      placeholder="Password"
-      required>
-    <button type="submit">MASUK</button>
-  </form>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYHoT_y5aQhAcg1iJ5GsID7iKYhTIvah0",
+      authDomain: "dapur-monic.firebaseapp.com",
+      projectId: "dapur-monic",
+      storageBucket: "dapur-monic.firebasestorage.app",
+      messagingSenderId: "938852370785",
+      appId: "1:938852370785:web:938e39a9ff38f791d75d20",
+      measurementId: "G-98DJ8G5QPN"
+    };
 
-  <p id="message"></p>
-</div>
+    const defaultMenu = [
+      { name:"Seblak Original", price:8000, emoji:"🍲" },
+      { name:"Seblak Sosis", price:10000, emoji:"🌭" },
+      { name:"Seblak Bakso", price:10000, emoji:"🍲" },
+      { name:"Seblak Mix", price:13000, emoji:"🥘" },
+      { name:"Seblak Jamur Enoki", price:15000, emoji:"🍄" },
+      { name:"Seblak Suki", price:16000, emoji:"🦀" },
+      { name:"Seblak Spesial", price:20000, emoji:"🌶️" },
+      { name:"Mie Njerit", price:10000, emoji:"🍜" },
+      { name:"Piscok Original", price:10000, emoji:"🍌" },
+      { name:"Piscok Coklat Keju", price:12000, emoji:"🍫" },
+      { name:"Takoyaki Small (3 pcs)", price:5000, emoji:"🐙" },
+      { name:"Sempol Ayam", price:1000, emoji:"🍢" }
+    ];
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    let menu = loadMenu();
+    let cart = [];
+    let currentUser = null;
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAYHoT_y5aQhAcg1iJ5GsID7iKYhTIvah0",
-  authDomain: "dapur-monic.firebaseapp.com",
-  projectId: "dapur-monic",
-  storageBucket: "dapur-monic.firebasestorage.app",
-  messagingSenderId: "938852370785",
-  appId: "1:938852370785:web:938e39a9ff38f791d75d20",
-  measurementId: "G-98DJ8G5QPN"
-};
+    function loadMenu() {
+      try {
+        const saved = localStorage.getItem("dapurMonicMenu");
+        return saved ? JSON.parse(saved) : defaultMenu.slice();
+      } catch (_) { return defaultMenu.slice(); }
+    }
+    function rupiah(n) {
+      return new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", maximumFractionDigits:0 }).format(n || 0);
+    }
+    function phoneToEmail(phone) {
+      const digits = phone.replace(/\D/g, "");
+      // Login nomor HP menggunakan akun Email/Password Firebase dengan email alias ini.
+      // Contoh 081234567890 menjadi 081234567890@dapurmonic.local
+      return digits + "@dapurmonic.local";
+    }
+    function showLoginMessage(text) { document.getElementById("loginMessage").textContent = text; }
+    function showApp(user) {
+      currentUser = user;
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("appScreen").classList.remove("hidden");
+      const ownerEmail = localStorage.getItem("dapurMonicOwnerEmail");
+      const isOwner = ownerEmail ? user.email === ownerEmail : false;
+      document.getElementById("roleLabel").textContent = isOwner ? "Pemilik" : "Karyawan";
+      document.getElementById("ownerPanel").classList.toggle("hidden", !isOwner);
+      renderMenu();
+    }
+    function renderMenu() {
+      const grid = document.getElementById("menuGrid");
+      grid.innerHTML = "";
+      menu.forEach((item, index) => {
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "tile";
+        tile.style.textAlign = "left";
+        tile.innerHTML = `<span class="emoji">${item.emoji || "🍽️"}</span><h3></h3><span class="price"></span>`;
+        tile.querySelector("h3").textContent = item.name;
+        tile.querySelector(".price").textContent = rupiah(item.price);
+        tile.addEventListener("click", () => addToCart(index));
+        grid.appendChild(tile);
+      });
+    }
+    function addToCart(index) {
+      const item = menu[index];
+      const found = cart.find(x => x.name === item.name && x.price === item.price);
+      if (found) found.qty++;
+      else cart.push({ name:item.name, price:item.price, qty:1 });
+      renderCart();
+    }
+    function renderCart() {
+      const box = document.getElementById("cartItems");
+      box.innerHTML = "";
+      if (!cart.length) box.innerHTML = '<p class="muted">Belum ada menu dipilih.</p>';
+      cart.forEach((item, i) => {
+        const row = document.createElement("div");
+        row.className = "cart-item";
+        const label = document.createElement("span");
+        label.textContent = `${item.name} × ${item.qty} — ${rupiah(item.price * item.qty)}`;
+        const remove = document.createElement("button");
+        remove.type = "button"; remove.textContent = "Hapus";
+        remove.addEventListener("click", () => { cart.splice(i, 1); renderCart(); });
+        row.append(label, remove); box.appendChild(row);
+      });
+      const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
+      document.getElementById("cartTotal").textContent = rupiah(total);
+      updateChange();
+    }
+    function updateChange() {
+      const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
+      const paid = Number(document.getElementById("payment").value || 0);
+      document.getElementById("changeText").textContent = "Kembalian: " + rupiah(Math.max(0, paid - total));
+    }
+    document.getElementById("loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("password").value;
+      const button = document.getElementById("loginButton");
+      if (!window.firebase) { showLoginMessage("Komponen login belum termuat. Periksa koneksi internet lalu muat ulang."); return; }
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      button.disabled = true; button.textContent = "MEMERIKSA...";
+      showLoginMessage("");
+      try {
+        const email = phoneToEmail(phone);
+        const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+        // Simpan akun yang pertama kali berhasil masuk sebagai pemilik di perangkat ini.
+        // Untuk pemisahan hak akses yang aman, peran harus diatur di backend/database.
+        if (!localStorage.getItem("dapurMonicOwnerEmail")) {
+          localStorage.setItem("dapurMonicOwnerEmail", result.user.email);
+        }
+        showApp(result.user);
+      } catch (error) {
+        const messages = {
+          "auth/invalid-credential":"Nomor HP atau password salah, atau akun belum dibuat dengan format login Dapur Monic.",
+          "auth/user-not-found":"Akun belum ditemukan. Akun harus dibuat di Firebase Authentication terlebih dahulu.",
+          "auth/wrong-password":"Password salah.",
+          "auth/invalid-email":"Format nomor HP tidak valid.",
+          "auth/too-many-requests":"Terlalu banyak percobaan. Tunggu beberapa saat lalu coba lagi.",
+          "auth/network-request-failed":"Koneksi internet bermasalah. Periksa internet lalu coba lagi."
+        };
+        showLoginMessage(messages[error.code] || ("Login belum berhasil: " + (error.message || error.code)));
+      } finally {
+        button.disabled = false; button.textContent = "MASUK";
+      }
+    });
+    document.getElementById("logoutButton").addEventListener("click", async () => {
+      try { if (window.firebase && firebase.apps.length) await firebase.auth().signOut(); } catch (_) {}
+      currentUser = null; cart = [];
+      document.getElementById("appScreen").classList.add("hidden");
+      document.getElementById("loginScreen").classList.remove("hidden");
+      document.getElementById("password").value = "";
+      renderCart();
+    });
+    document.getElementById("payment").addEventListener("input", updateChange);
+    document.getElementById("clearButton").addEventListener("click", () => { cart = []; document.getElementById("payment").value = ""; renderCart(); document.getElementById("saleMessage").textContent = ""; });
+    document.getElementById("finishButton").addEventListener("click", () => {
+      const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
+      const paid = Number(document.getElementById("payment").value || 0);
+      const msg = document.getElementById("saleMessage");
+      if (!cart.length) { msg.textContent = "Pilih menu terlebih dahulu."; return; }
+      if (paid < total) { msg.textContent = "Uang pembayaran masih kurang."; return; }
+      const date = new Date();
+      const receipt = [
+        "DAPUR MONIC",
+        "Struk Penjualan",
+        date.toLocaleString("id-ID"),
+        "------------------------------",
+        ...cart.map(x => `${x.name} x${x.qty}  ${rupiah(x.price * x.qty)}`),
+        "------------------------------",
+        `TOTAL: ${rupiah(total)}`,
+        `BAYAR: ${rupiah(paid)}`,
+        `KEMBALIAN: ${rupiah(paid-total)}`,
+        "Terima kasih sudah membeli!"
+      ].join("\n");
+      const win = window.open("", "_blank", "width=360,height=600");
+      if (win) {
+        win.document.write("<!doctype html><html><head><title>Struk Dapur Monic</title><style>body{font-family:monospace;white-space:pre-wrap;padding:16px}button{padding:10px;margin-top:15px}@media print{button{display:none}}</style></head><body></body></html>");
+        win.document.body.textContent = receipt;
+        const printButton = win.document.createElement("button");
+        printButton.textContent = "Cetak";
+        printButton.onclick = () => win.print();
+        win.document.body.appendChild(printButton);
+      } else {
+        msg.textContent = "Browser memblokir jendela struk. Izinkan pop-up untuk mencetak.";
+        return;
+      }
+      msg.textContent = "Struk siap dicetak. Catatan: transaksi ini belum tersimpan ke laporan/database.";
+      cart = []; document.getElementById("payment").value = ""; renderCart();
+    });
+    document.getElementById("addMenuButton").addEventListener("click", () => {
+      const name = document.getElementById("newMenuName").value.trim();
+      const price = Number(document.getElementById("newMenuPrice").value);
+      const msg = document.getElementById("ownerMessage");
+      if (!name || !Number.isFinite(price) || price <= 0) { msg.textContent = "Isi nama menu dan harga yang benar."; return; }
+      menu.push({ name, price:Math.round(price), emoji:"🍽️" });
+      localStorage.setItem("dapurMonicMenu", JSON.stringify(menu));
+      document.getElementById("newMenuName").value = "";
+      document.getElementById("newMenuPrice").value = "";
+      renderMenu(); msg.textContent = "Menu ditambahkan di perangkat ini.";
+    });
+    renderCart();
+  </script>
+</body>
+</html>
