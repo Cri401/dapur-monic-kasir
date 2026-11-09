@@ -180,30 +180,95 @@
       });
     }
     function addToCart(index) {
-      const item = menu[index];
-      const found = cart.find(x => x.name === item.name && x.price === item.price);
-      if (found) found.qty++;
-      else cart.push({ name:item.name, price:item.price, qty:1 });
-      renderCart();
+  const item = menu[index];
+  let toppings = [];
+  let extra = 0;
+
+  if (item.name.toLowerCase().includes("seblak")) {
+    toppings = ["Pilus cikur", "Cuanki lidah", "Siomay kering"];
+    extra = 1000;
+  } else if (item.name.toLowerCase().includes("piscok")) {
+    toppings = ["Meses", "Keju", "Chocochip", "Sprinkle"];
+    extra = 1000;
+  } else if (item.name.toLowerCase().includes("takoyaki")) {
+    toppings = ["Katsubusi", "Nori", "Keju"];
+  }
+
+  let selected = [];
+
+  if (toppings.length) {
+    const choices = toppings.map((t, i) => `${i + 1}. ${t}`).join("\n");
+    const answer = prompt(
+      "Pilih topping untuk " + item.name +
+      "\n" + choices +
+      "\n\nMasukkan nomor topping dipisahkan koma. Kosongkan jika tanpa topping."
+    );
+
+    if (answer) {
+      selected = answer.split(",")
+        .map(x => Number(x.trim()) - 1)
+        .filter(i => i >= 0 && i < toppings.length)
+        .map(i => toppings[i]);
     }
+  }
+
+  if (item.name.toLowerCase().includes("takoyaki") && selected.length > 1) {
+    selected = selected.slice(0, 1);
+  }
+
+  const toppingPrice = item.name.toLowerCase().includes("takoyaki")
+    ? 0 : selected.length * extra;
+
+  const key = selected.join(", ");
+  const found = cart.find(x =>
+    x.name === item.name &&
+    x.toppings === key
+  );
+
+  if (found) found.qty++;
+  else cart.push({
+    name: item.name,
+    price: item.price + toppingPrice,
+    qty: 1,
+    toppings: key
+  });
+
+  renderCart();
+}
     function renderCart() {
-      const box = document.getElementById("cartItems");
-      box.innerHTML = "";
-      if (!cart.length) box.innerHTML = '<p class="muted">Belum ada menu dipilih.</p>';
-      cart.forEach((item, i) => {
-        const row = document.createElement("div");
-        row.className = "cart-item";
-        const label = document.createElement("span");
-        label.textContent = `${item.name} × ${item.qty} — ${rupiah(item.price * item.qty)}`;
-        const remove = document.createElement("button");
-        remove.type = "button"; remove.textContent = "Hapus";
-        remove.addEventListener("click", () => { cart.splice(i, 1); renderCart(); });
-        row.append(label, remove); box.appendChild(row);
-      });
-      const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
-      document.getElementById("cartTotal").textContent = rupiah(total);
-      updateChange();
-    }
+  const box = document.getElementById("cartItems");
+  box.innerHTML = "";
+
+  if (!cart.length) {
+    box.innerHTML = '<p class="muted">Belum ada menu dipilih.</p>';
+  }
+
+  cart.forEach((item, i) => {
+    const row = document.createElement("div");
+    row.className = "cart-item";
+
+    const label = document.createElement("span");
+    label.textContent =
+      `${item.name} × ${item.qty}` +
+      (item.toppings ? ` (Topping: ${item.toppings})` : "") +
+      ` — ${rupiah(item.price * item.qty)}`;
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Hapus";
+    remove.addEventListener("click", () => {
+      cart.splice(i, 1);
+      renderCart();
+    });
+
+    row.append(label, remove);
+    box.appendChild(row);
+  });
+
+  const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
+  document.getElementById("cartTotal").textContent = rupiah(total);
+  updateChange();
+}
     function updateChange() {
       const total = cart.reduce((sum, x) => sum + x.price * x.qty, 0);
       const paid = Number(document.getElementById("payment").value || 0);
@@ -263,7 +328,7 @@
         "Struk Penjualan",
         date.toLocaleString("id-ID"),
         "------------------------------",
-        ...cart.map(x => `${x.name} x${x.qty}  ${rupiah(x.price * x.qty)}`),
+        ...cart.map(x => `${x.name}${x.toppings ? " (Topping: " + x.toppings + ")" : ""} x${x.qty}  ${rupiah(x.price * x.qty)}`),
         "------------------------------",
         `TOTAL: ${rupiah(total)}`,
         `BAYAR: ${rupiah(paid)}`,
